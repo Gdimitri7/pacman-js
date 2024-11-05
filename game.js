@@ -2,6 +2,13 @@ const canvas = document.getElementById("canvas");
 const canvasContext = canvas.getContext("2d");
 const pacmanFrames = document.getElementById("animation");
 const ghostFrames = document.getElementById("ghosts");
+const gameOverImage = new Image();
+gameOverImage.src = "game-over.png";
+gameOverImage.onload = () => {
+    console.log("gameOverImage loaded");
+}
+
+
 
 let createRect = (x, y, width, height, color) => {
     canvasContext.fillStyle = color;
@@ -100,10 +107,57 @@ let restartPacmanAndGhosts = () => {
 
 let onGhostCollision = () => {
     lives--;
-    restartPacmanAndGhosts();
-    if (lives == 0) {
+    if (lives > 0) {
+        restartPacmanAndGhosts();
+    } else {
+        clearInterval(gameInterval); // Para o loop do jogo
+        drawGameOver(); // Exibe imagem e mensagem de "Game Over"
     }
 };
+
+// Função para desenhar a tela de "Game Over"
+let drawGameOver = () => {
+    canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Verifique se a imagem foi carregada corretamente
+    if (gameOverImage.complete && gameOverImage.naturalHeight !== 0) {
+        canvasContext.drawImage(
+            gameOverImage,
+            canvas.width / 2 - gameOverImage.width / 2,
+            canvas.height / 2 - gameOverImage.height / 2
+        );
+    } else {
+        console.log("A imagem de Game Over não foi carregada corretamente.");
+    }
+
+    // Exibe mensagem para reiniciar
+    canvasContext.font = "20px Emulogic";
+    canvasContext.fillStyle = "white";
+    canvasContext.fillText(
+        "Pressione R para reiniciar",
+        canvas.width / 2 - 130,
+        canvas.height / 2 + gameOverImage.height / 2 + 20
+    );
+};
+
+
+// Função para lidar com a tecla de reiniciar
+let handleRestartKey = (event) => {
+    if (event.key === "r" || event.key === "R") {
+        restartGame();
+        window.removeEventListener("keydown", handleRestartKey); // Remove o evento ao reiniciar
+    }
+};
+
+// Função para reiniciar o jogo
+let restartGame = () => {
+    lives = 3;
+    score = 0;
+    createNewPacman();
+    createGhosts();
+    gameInterval = setInterval(gameLoop, 1000 / fps);
+};
+
 
 let update = () => {
     pacman.moveProcess();
